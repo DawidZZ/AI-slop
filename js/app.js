@@ -10,6 +10,7 @@
   const toastEl = document.getElementById('toast');
   const searchForm = document.getElementById('search-form');
   const searchInput = document.getElementById('search-input');
+  const accountLabel = document.getElementById('account-label');
 
   const byId = Object.fromEntries(PRODUCTS.map(p => [p.id, p]));
   const catName = Object.fromEntries(CATEGORIES.map(c => [c.id, c.name]));
@@ -81,6 +82,11 @@
     const count = Object.values(cart).reduce((a, b) => a + b, 0);
     cartCountEl.textContent = count;
     cartCountEl.hidden = count === 0;
+  }
+
+  function updateAccountLink() {
+    const me = Auth.current();
+    accountLabel.textContent = me ? me.name.split(' ')[0] : 'Zaloguj się';
   }
 
   // ---------- Widoki ----------
@@ -252,10 +258,14 @@
 
   function renderCheckout() {
     if (!cartItems().length) { location.hash = '#/koszyk'; return; }
+    const me = Auth.current();
     app.innerHTML = `
       <h1>Zamówienie</h1>
       <div class="cart-layout">
         <form id="checkout" class="checkout" novalidate>
+          ${me
+            ? `<p class="notice">Zamawiasz jako <strong>${esc(me.name)}</strong> — zamówienie trafi do historii na Twoim koncie.</p>`
+            : `<p class="notice">Masz konto? <a href="#/logowanie/zamowienie">Zaloguj się</a>, aby uzupełnić dane automatycznie i śledzić zamówienia.</p>`}
           <fieldset>
             <legend>Dane do wysyłki</legend>
             <div class="row">
@@ -282,6 +292,7 @@
             <label class="radio"><input type="radio" name="payment" value="przelew"> Szybki przelew</label>
             <label class="radio"><input type="radio" name="payment" value="pobranie"> Za pobraniem</label>
           </fieldset>
+          ${me ? '<label class="radio"><input type="checkbox" name="saveAddress" checked> Zapisz dane wysyłki na koncie</label>' : ''}
           <label class="radio"><input type="checkbox" name="terms" required> Akceptuję regulamin sklepu (makieta)</label>
           <p class="form-error" id="form-error" hidden>Uzupełnij poprawnie zaznaczone pola.</p>
           <button class="btn btn-block" type="submit">Zamawiam i płacę</button>
@@ -291,6 +302,13 @@
       </div>`;
 
     const form = app.querySelector('#checkout');
+    const addressFields = ['firstName', 'lastName', 'phone', 'street', 'zip', 'city'];
+    if (me) {
+      const [first = '', ...rest] = me.name.split(' ');
+      const prefill = { firstName: first, lastName: rest.join(' '), email: me.email, ...me.address };
+      for (const [k, v] of Object.entries(prefill)) if (form[k] && v) form[k].value = v;
+    }
+
     form.addEventListener('submit', e => {
       e.preventDefault();
       form.classList.add('validated');
@@ -301,10 +319,20 @@
       }
       const order = {
         number: 'ZI-' + Date.now().toString(36).toUpperCase(),
+        date: new Date().toISOString(),
         name: form.firstName.value.trim(),
         email: form.email.value.trim(),
+        items: cartItems().map(({ product: p, qty }) => ({ id: p.id, name: p.name, price: p.price, qty })),
+        delivery: form.delivery.value,
+        payment: form.payment.value,
         total: cartTotals().total,
       };
+      if (me) {
+        Auth.addOrder(order);
+        if (form.saveAddress.checked) {
+          Auth.update({ address: Object.fromEntries(addressFields.map(f => [f, form[f].value.trim()])) });
+        }
+      }
       sessionStorage.setItem('ziarno-last-order', JSON.stringify(order));
       cart = {};
       saveCart();
@@ -323,7 +351,165 @@
         <p>Zamówienie <strong>${esc(order.number)}</strong> na kwotę <strong>${fmt(order.total)}</strong> zostało przyjęte.</p>
         <p class="muted">Potwierdzenie „wysłaliśmy” na ${esc(order.email)} (to tylko makieta).</p>
         <a href="#/" class="btn">Wróć do sklepu</a>
+        ${Auth.current() ? '<a href="#/konto" class="btn btn-ghost">Moje zamówienia</a>' : ''}
       </div>`;
+  }
+
+  // ---------- Konto użytkownika ----------
+
+  const DELIVERY = { kurier: 'Kurier', paczkomat: 'Paczkomat', odbior: 'Odbiór osobisty' };
+  const PAYMENT = { blik: 'BLIK', przelew: 'Szybki przelew', pobranie: 'Za pobraniem' };
+  const fmtDate = iso => new Date(iso).toLocaleString('pl-PL', { dateStyle: 'medium', timeStyle: 'short' });
+
+  // Wspólna obsługa formularzy logowania/rejestracji: walidacja + async submit z komunikatem błędu.
+  function bindAuthForm(form, action, next) {
+    const err = form.querySelector('.form-error');
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      form.classList.add('validated');
+      err.hidden = true;
+      if (!form.checkValidity()) {
+        err.textContent = 'Uzupełnij poprawnie zaznaczone pola.';
+        err.hidden = false;
+        form.querySelector(':invalid')?.focus();
+        return;
+      }
+      const btn = form.querySelector('[type=submit]');
+      btn.disabled = true;
+      try {
+        const user = await action(form);
+        updateAccountLink();
+        toast(`Witaj, ${user.name}!`);
+        location.hash = '#/' + (next || 'konto');
+      } catch (ex) {
+        err.textContent = ex.message;
+        err.hidden = false;
+        btn.disabled = false;
+      }
+    });
+  }
+
+  function renderLogin(next) {
+    if (Auth.current()) { location.hash = '#/' + (next || 'konto'); return; }
+    const nextPart = next ? '/' + next : '';
+    app.innerHTML = `
+      <div class="auth-box">
+        <h1>Logowanie</h1>
+        <form class="checkout" id="login-form" novalidate>
+          <label>E-mail<input name="email" type="email" required autocomplete="email"></label>
+          <label>Hasło<input name="password" type="password" required autocomplete="current-password"></label>
+          <p class="form-error" hidden></p>
+          <button class="btn btn-block" type="submit">Zaloguj się</button>
+        </form>
+        <p class="muted">Nie masz konta? <a href="#/rejestracja${nextPart}">Zarejestruj się</a></p>
+      </div>`;
+    bindAuthForm(app.querySelector('#login-form'),
+      f => Auth.login(f.email.value, f.password.value), next);
+  }
+
+  function renderRegister(next) {
+    if (Auth.current()) { location.hash = '#/' + (next || 'konto'); return; }
+    const nextPart = next ? '/' + next : '';
+    app.innerHTML = `
+      <div class="auth-box">
+        <h1>Rejestracja</h1>
+        <form class="checkout" id="register-form" novalidate>
+          <label>Imię i nazwisko<input name="name" required minlength="2" autocomplete="name"></label>
+          <label>E-mail<input name="email" type="email" required autocomplete="email"></label>
+          <label>Hasło <small class="muted">(min. 8 znaków)</small>
+            <input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
+          <label>Powtórz hasło<input name="password2" type="password" required autocomplete="new-password"></label>
+          <label class="radio"><input type="checkbox" name="terms" required> Akceptuję regulamin sklepu (makieta)</label>
+          <p class="form-error" hidden></p>
+          <button class="btn btn-block" type="submit">Załóż konto</button>
+          <p class="muted small">Konto jest zapisywane tylko w tej przeglądarce. Nie używaj prawdziwego hasła.</p>
+        </form>
+        <p class="muted">Masz już konto? <a href="#/logowanie${nextPart}">Zaloguj się</a></p>
+      </div>`;
+    const form = app.querySelector('#register-form');
+    form.password2.addEventListener('input', () => {
+      form.password2.setCustomValidity(form.password2.value === form.password.value ? '' : 'Hasła różnią się');
+    });
+    bindAuthForm(form, f => {
+      if (f.password.value !== f.password2.value) throw new Error('Hasła nie są takie same.');
+      return Auth.register({ name: f.elements.name.value, email: f.email.value, password: f.password.value });
+    }, next);
+  }
+
+  function orderCard(o) {
+    return `
+      <details class="order">
+        <summary>
+          <strong>${esc(o.number)}</strong>
+          <span class="muted">${fmtDate(o.date)}</span>
+          <strong>${fmt(o.total)}</strong>
+        </summary>
+        <ul>${o.items.map(i => `<li>${esc(i.name)} × ${i.qty} <span class="muted">— ${fmt(i.price * i.qty)}</span></li>`).join('')}</ul>
+        <p class="muted small">Dostawa: ${DELIVERY[o.delivery] || '—'} · Płatność: ${PAYMENT[o.payment] || '—'}</p>
+      </details>`;
+  }
+
+  function renderAccount() {
+    const me = Auth.current();
+    if (!me) { location.hash = '#/logowanie'; return; }
+    const a = me.address || {};
+    app.innerHTML = `
+      <div class="account-head">
+        <div>
+          <h1>Cześć, ${esc(me.name.split(' ')[0])}!</h1>
+          <p class="muted">${esc(me.email)} · konto od ${new Date(me.createdAt).toLocaleDateString('pl-PL')}</p>
+        </div>
+        <button class="btn btn-ghost" data-logout>Wyloguj się</button>
+      </div>
+      <div class="cart-layout">
+        <section>
+          <h2>Historia zamówień</h2>
+          ${me.orders.length
+            ? me.orders.map(orderCard).join('')
+            : '<div class="empty small-empty"><p>Nie masz jeszcze zamówień.</p><a href="#/" class="btn">Przejdź do sklepu</a></div>'}
+        </section>
+        <aside class="summary">
+          <h2>Dane konta</h2>
+          <form class="checkout" id="profile-form" novalidate>
+            <label>Imię i nazwisko<input name="name" required minlength="2" value="${esc(me.name)}"></label>
+            <label>Telefon<input name="phone" type="tel" pattern="[0-9 +\\-]{9,}" value="${esc(a.phone || '')}"></label>
+            <label>Ulica i numer<input name="street" value="${esc(a.street || '')}"></label>
+            <div class="row">
+              <label>Kod<input name="zip" pattern="\\d{2}-\\d{3}" placeholder="00-000" value="${esc(a.zip || '')}"></label>
+              <label>Miasto<input name="city" value="${esc(a.city || '')}"></label>
+            </div>
+            <button class="btn btn-block" type="submit">Zapisz</button>
+          </form>
+          <div class="danger-zone">
+            <button class="link-danger" data-delete-account>Usuń konto</button>
+            <div id="delete-confirm" hidden>
+              <p class="small">Na pewno? Historia zamówień zostanie utracona.</p>
+              <button class="btn btn-small btn-danger" data-delete-confirm>Tak, usuń</button>
+              <button class="btn btn-small btn-ghost" data-delete-cancel>Anuluj</button>
+            </div>
+          </div>
+        </aside>
+      </div>`;
+
+    const form = app.querySelector('#profile-form');
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      form.classList.add('validated');
+      if (!form.checkValidity()) { form.querySelector(':invalid')?.focus(); return; }
+      const name = form.elements.name.value.trim();
+      const [firstName = '', ...rest] = name.split(' ');
+      Auth.update({
+        name,
+        address: {
+          ...a, firstName, lastName: rest.join(' '),
+          phone: form.phone.value.trim(), street: form.street.value.trim(),
+          zip: form.zip.value.trim(), city: form.city.value.trim(),
+        },
+      });
+      updateAccountLink();
+      toast('Zapisano dane konta');
+      renderAccount();
+    });
   }
 
   function renderNotFound() {
@@ -340,6 +526,9 @@
       case 'koszyk': renderCart(); break;
       case 'zamowienie': renderCheckout(); break;
       case 'dziekujemy': renderThanks(); break;
+      case 'logowanie': renderLogin(param); break;
+      case 'rejestracja': renderRegister(param); break;
+      case 'konto': renderAccount(); break;
       default: renderNotFound();
     }
     window.scrollTo(0, 0);
@@ -376,6 +565,22 @@
       setQty(id, (cart[id] || 0) + Number(t.dataset.cartStep));
       renderCart();
     }
+
+    if ('logout' in t.dataset) {
+      Auth.logout();
+      updateAccountLink();
+      toast('Wylogowano');
+      location.hash = '#/';
+    }
+
+    if ('deleteAccount' in t.dataset) app.querySelector('#delete-confirm').hidden = false;
+    if ('deleteCancel' in t.dataset) app.querySelector('#delete-confirm').hidden = true;
+    if ('deleteConfirm' in t.dataset) {
+      Auth.deleteAccount();
+      updateAccountLink();
+      toast('Konto zostało usunięte');
+      location.hash = '#/';
+    }
   });
 
   app.addEventListener('change', e => {
@@ -394,8 +599,13 @@
   searchForm.addEventListener('submit', e => e.preventDefault());
 
   window.addEventListener('hashchange', route);
-  window.addEventListener('storage', e => { if (e.key === CART_KEY) { cart = loadCart(); updateCartCount(); } });
+  window.addEventListener('storage', e => {
+    if (e.key === CART_KEY) { cart = loadCart(); updateCartCount(); }
+    // Logowanie/wylogowanie w innej karcie.
+    if (e.key === Auth.SESSION_KEY) { updateAccountLink(); route(); }
+  });
 
   updateCartCount();
+  updateAccountLink();
   route();
 })();
