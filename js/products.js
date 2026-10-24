@@ -1,0 +1,36 @@
+// Statyczny katalog produktów — zastępuje backend.
+window.CATEGORIES = [
+  { id: 'kawa', name: 'Kawa' },
+  { id: 'herbata', name: 'Herbata' },
+  { id: 'akcesoria', name: 'Akcesoria' },
+  { id: 'slodycze', name: 'Słodycze' },
+];
+
+window.PRODUCTS = [
+  { id: 'etiopia-yirgacheffe', name: 'Etiopia Yirgacheffe', category: 'kawa', price: 54.9, oldPrice: 64.9, emoji: '☕', color: '#c8a27a', rating: 4.8, stock: 12,
+    description: 'Jasno palona kawa z nutami jaśminu, bergamotki i cytryny. Idealna do przelewu.', details: ['250 g', 'Ziarno', '100% arabika', 'Palenie: jasne'] },
+  { id: 'brazylia-santos', name: 'Brazylia Santos', category: 'kawa', price: 42.0, emoji: '☕', color: '#8b5e3c', rating: 4.5, stock: 30,
+    description: 'Klasyczna, czekoladowo-orzechowa kawa do espresso i kawiarki.', details: ['250 g', 'Ziarno', '100% arabika', 'Palenie: średnie'] },
+  { id: 'kolumbia-huila', name: 'Kolumbia Huila', category: 'kawa', price: 49.5, emoji: '☕', color: '#a0522d', rating: 4.6, stock: 0,
+    description: 'Słodka, zbalansowana kawa z nutami karmelu i czerwonego jabłka.', details: ['250 g', 'Ziarno', '100% arabika', 'Palenie: średnie'] },
+  { id: 'espresso-blend', name: 'Espresso Blend', category: 'kawa', price: 79.0, emoji: '☕', color: '#5c3a21', rating: 4.7, stock: 8,
+    description: 'Mieszanka arabiki i robusty o intensywnym smaku i gęstej cremie.', details: ['1 kg', 'Ziarno', '80% arabika / 20% robusta', 'Palenie: ciemne'] },
+  { id: 'sencha', name: 'Sencha Japońska', category: 'herbata', price: 36.0, emoji: '🍵', color: '#7fa65a', rating: 4.4, stock: 20,
+    description: 'Zielona herbata o świeżym, trawiastym smaku z lekką słodyczą.', details: ['100 g', 'Liściasta', 'Japonia'] },
+  { id: 'earl-grey', name: 'Earl Grey Premium', category: 'herbata', price: 28.5, oldPrice: 34.0, emoji: '🫖', color: '#6b6f8a', rating: 4.3, stock: 40,
+    description: 'Czarna herbata cejlońska z naturalnym olejkiem bergamotki.', details: ['100 g', 'Liściasta', 'Sri Lanka'] },
+  { id: 'matcha', name: 'Matcha Ceremonialna', category: 'herbata', price: 89.0, emoji: '🍵', color: '#4f8a3a', rating: 4.9, stock: 5,
+    description: 'Najwyższej jakości sproszkowana zielona herbata z Uji.', details: ['30 g', 'Proszek', 'Japonia, Uji'] },
+  { id: 'rooibos', name: 'Rooibos Waniliowy', category: 'herbata', price: 24.0, emoji: '🌿', color: '#b5562b', rating: 4.2, stock: 25,
+    description: 'Bezkofeinowy napar z czerwonokrzewu z laską wanilii.', details: ['100 g', 'Liściasta', 'RPA'] },
+  { id: 'drip-v60', name: 'Drip V60 ceramiczny', category: 'akcesoria', price: 119.0, emoji: '🫗', color: '#d9d4cc', rating: 4.8, stock: 7,
+    description: 'Ceramiczny drip do parzenia kawy metodą przelewową.', details: ['Rozmiar 02', 'Ceramika', 'Biały'] },
+  { id: 'mlynek-reczny', name: 'Młynek ręczny', category: 'akcesoria', price: 249.0, oldPrice: 299.0, emoji: '⚙️', color: '#9aa1a8', rating: 4.6, stock: 3,
+    description: 'Młynek z żarnami stożkowymi ze stali nierdzewnej i regulacją mielenia.', details: ['Stal nierdzewna', 'Pojemność 25 g', '40 stopni mielenia'] },
+  { id: 'kubek-termiczny', name: 'Kubek termiczny', category: 'akcesoria', price: 69.0, emoji: '🥤', color: '#2f6f73', rating: 4.1, stock: 18,
+    description: 'Szczelny kubek utrzymujący temperaturę napoju do 6 godzin.', details: ['350 ml', 'Stal nierdzewna', 'Szczelna pokrywka'] },
+  { id: 'czekolada-70', name: 'Czekolada 70%', category: 'slodycze', price: 18.9, emoji: '🍫', color: '#4a2c20', rating: 4.5, stock: 50,
+    description: 'Gorzka czekolada rzemieślnicza z ziaren z Ekwadoru.', details: ['80 g', 'Kakao 70%', 'Bez dodatku lecytyny'] },
+  { id: 'cantuccini', name: 'Cantuccini migdałowe', category: 'slodycze', price: 22.0, emoji: '🍪', color: '#d8a657', rating: 4.4, stock: 15,
+    description: 'Włoskie ciasteczka z migdałami — idealne do kawy.', details: ['200 g', 'Z migdałami', 'Wypiekane ręcznie'] },
+];
