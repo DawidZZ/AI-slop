@@ -8,7 +8,7 @@ Czysty HTML + CSS + JavaScript, bez zależności i bez kroku budowania.
 - katalog produktów z filtrem kategorii, sortowaniem i wyszukiwarką
 - strona produktu z wyborem ilości i produktami powiązanymi
 - koszyk zapisywany w `localStorage` (zmiana ilości, usuwanie, próg darmowej dostawy)
-- konto użytkownika: rejestracja, logowanie, profil z adresem, historia zamówień, usuwanie konta
+- konto użytkownika: rejestracja, logowanie, profil z adresem, zmiana hasła, historia zamówień, usuwanie konta
   (dane w `localStorage`, hasła solone i hashowane SHA-256 — tylko na potrzeby makiety)
 - formularz zamówienia z walidacją i stroną podziękowania (nic nie jest wysyłane)
 - routing oparty na hashu (`#/produkt/...`) — działa na GitHub Pages bez przekierowań 404

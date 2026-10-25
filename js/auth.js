@@ -91,6 +91,19 @@ window.Auth = (() => {
     return publicUser(all[me.email]);
   }
 
+  async function changePassword(oldPassword, newPassword) {
+    const me = current();
+    if (!me) throw new Error('Musisz być zalogowany.');
+    const all = users();
+    const u = all[me.email];
+    if (u.passwordHash !== await hash(oldPassword, u.salt)) {
+      throw new Error('Obecne hasło jest nieprawidłowe.');
+    }
+    u.salt = randomSalt();
+    u.passwordHash = await hash(newPassword, u.salt);
+    saveUsers(all);
+  }
+
   function addOrder(order) {
     const me = current();
     if (!me) return;
@@ -106,5 +119,5 @@ window.Auth = (() => {
     logout();
   }
 
-  return { SESSION_KEY, current, register, login, logout, update, addOrder, deleteAccount };
+  return { SESSION_KEY, USERS_KEY, current, register, login, logout, update, changePassword, addOrder, deleteAccount };
 })();

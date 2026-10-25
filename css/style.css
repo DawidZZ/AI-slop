@@ -428,6 +428,7 @@ main { flex: 1; padding-block: 24px 48px; outline: none; }
 .order ul { margin: 12px 0 6px; padding-left: 20px; }
 .small-empty { padding: 32px 20px; }
 .summary .checkout { gap: 10px; }
+.summary .checkout + h2 { margin-top: 24px; }
 .danger-zone { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
 .link-danger {
   border: 0;

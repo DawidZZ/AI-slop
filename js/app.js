@@ -480,6 +480,15 @@
             </div>
             <button class="btn btn-block" type="submit">Zapisz</button>
           </form>
+          <h2>Zmiana hasła</h2>
+          <form class="checkout" id="password-form" novalidate>
+            <label>Obecne hasło<input name="oldPassword" type="password" required autocomplete="current-password"></label>
+            <label>Nowe hasło <small class="muted">(min. 8 znaków)</small>
+              <input name="password" type="password" required minlength="8" autocomplete="new-password"></label>
+            <label>Powtórz nowe hasło<input name="password2" type="password" required autocomplete="new-password"></label>
+            <p class="form-error" hidden></p>
+            <button class="btn btn-block btn-ghost" type="submit">Zmień hasło</button>
+          </form>
           <div class="danger-zone">
             <button class="link-danger" data-delete-account>Usuń konto</button>
             <div id="delete-confirm" hidden>
@@ -509,6 +518,37 @@
       updateAccountLink();
       toast('Zapisano dane konta');
       renderAccount();
+    });
+
+    const pwForm = app.querySelector('#password-form');
+    const pwErr = pwForm.querySelector('.form-error');
+    pwForm.password2.addEventListener('input', () => {
+      pwForm.password2.setCustomValidity(pwForm.password2.value === pwForm.password.value ? '' : 'Hasła różnią się');
+    });
+    pwForm.addEventListener('submit', async e => {
+      e.preventDefault();
+      pwForm.classList.add('validated');
+      pwErr.hidden = true;
+      if (!pwForm.checkValidity()) {
+        pwErr.textContent = pwForm.password2.validity.customError
+          ? 'Nowe hasła nie są takie same.'
+          : 'Uzupełnij poprawnie zaznaczone pola.';
+        pwErr.hidden = false;
+        pwForm.querySelector(':invalid')?.focus();
+        return;
+      }
+      const btn = pwForm.querySelector('[type=submit]');
+      btn.disabled = true;
+      try {
+        await Auth.changePassword(pwForm.oldPassword.value, pwForm.password.value);
+        pwForm.reset();
+        pwForm.classList.remove('validated');
+        toast('Hasło zostało zmienione');
+      } catch (ex) {
+        pwErr.textContent = ex.message;
+        pwErr.hidden = false;
+      }
+      btn.disabled = false;
     });
   }
 
@@ -603,6 +643,11 @@
     if (e.key === CART_KEY) { cart = loadCart(); updateCartCount(); }
     // Logowanie/wylogowanie w innej karcie.
     if (e.key === Auth.SESSION_KEY) { updateAccountLink(); route(); }
+    // Zmiana danych konta w innej karcie — nie przerysowujemy np. wypełnianego formularza zamówienia.
+    if (e.key === Auth.USERS_KEY) {
+      updateAccountLink();
+      if (location.hash.startsWith('#/konto')) route();
+    }
   });
 
   updateCartCount();
