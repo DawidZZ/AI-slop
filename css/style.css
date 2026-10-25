@@ -81,7 +81,7 @@ main { flex: 1; padding-block: 24px 48px; outline: none; }
   color: var(--text);
   font: inherit;
 }
-.cart-link {
+.header-link {
   position: relative;
   display: flex;
   align-items: center;
@@ -91,7 +91,7 @@ main { flex: 1; padding-block: 24px 48px; outline: none; }
   padding: 8px 12px;
   border-radius: 999px;
 }
-.cart-link:hover { background: var(--accent-soft); }
+.header-link:hover { background: var(--accent-soft); }
 .cart-count {
   background: var(--accent);
   color: #fff;
@@ -389,6 +389,59 @@ main { flex: 1; padding-block: 24px 48px; outline: none; }
 .site-footer ul { list-style: none; padding: 0; margin: 6px 0 0; }
 .site-footer a { color: var(--muted); }
 
+/* ---------- Account ---------- */
+.auth-box { max-width: 440px; margin: 0 auto; }
+.auth-box h1 { text-align: center; }
+.auth-box > p { text-align: center; }
+.notice {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+}
+.notice a { color: var(--accent); font-weight: 600; }
+.account-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.account-head h1 { margin-bottom: 4px; }
+.account-head p { margin: 0; }
+.order {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+.order summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: baseline;
+  cursor: pointer;
+}
+.order summary strong:last-child { margin-left: auto; }
+.order ul { margin: 12px 0 6px; padding-left: 20px; }
+.small-empty { padding: 32px 20px; }
+.summary .checkout { gap: 10px; }
+.summary .checkout + h2 { margin-top: 24px; }
+.danger-zone { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+.link-danger {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--sale);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.btn-danger { background: var(--sale); }
+.btn-danger:hover { background: var(--sale); filter: brightness(.9); }
+
 [hidden] { display: none !important; }
 
 /* ---------- Responsive ---------- */
@@ -400,7 +453,7 @@ main { flex: 1; padding-block: 24px 48px; outline: none; }
 @media (max-width: 600px) {
   .container { padding-inline: 16px; }
   .header-inner { gap: 10px; }
-  .cart-label { display: none; }
+  .header-label { display: none; }
   .hero { grid-template-columns: 1fr; padding: 24px; }
   .hero-art { display: none; }
   .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }

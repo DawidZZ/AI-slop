@@ -17,8 +17,11 @@
       <form class="search" id="search-form" role="search">
         <input type="search" id="search-input" placeholder="Szukaj produktów…" aria-label="Szukaj produktów">
       </form>
-      <a href="#/koszyk" class="cart-link" aria-label="Koszyk">
-        🛒 <span class="cart-label">Koszyk</span>
+      <a href="#/konto" class="header-link" id="account-link" aria-label="Konto">
+        👤 <span class="header-label" id="account-label">Zaloguj się</span>
+      </a>
+      <a href="#/koszyk" class="header-link cart-link" aria-label="Koszyk">
+        🛒 <span class="header-label">Koszyk</span>
         <span class="cart-count" id="cart-count" hidden>0</span>
       </a>
     </div>
@@ -37,6 +40,7 @@
         <ul>
           <li><a href="#/">Katalog</a></li>
           <li><a href="#/koszyk">Koszyk</a></li>
+          <li><a href="#/konto">Moje konto</a></li>
         </ul>
       </div>
       <div>
@@ -49,6 +53,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
   <script src="js/products.js"></script>
+  <script src="js/auth.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
